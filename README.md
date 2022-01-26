@@ -1,5 +1,7 @@
 # YOLO to MongoDB
 
+将 YOLO 格式的标注数据存入 MongoDB 数据库的小工具.
+
 ## 本地开发
 
 ```bash
