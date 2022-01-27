@@ -4,8 +4,23 @@ import pymongo
 from datetime import datetime
 from prompt_toolkit import prompt
 from bson.objectid import ObjectId
+from prompt_toolkit.styles import Style
 from prompt_toolkit.validation import Validator
-from prompt_toolkit import print_formatted_text
+from prompt_toolkit import HTML
+
+bottom_remind = None
+
+
+def set_bottom_toolbar(remind):
+    global bottom_remind
+    bottom_remind = remind
+
+
+def get_bottom_toolbar():
+    if bottom_remind:
+        return HTML(bottom_remind)
+    else:
+        return HTML('欢迎使用 <b><style bg="ansired">YOLO</style> to <style bg="ansigreen">MongoDB</style></b> !')
 
 
 def mongo_connection_validator(text):
@@ -15,6 +30,8 @@ def mongo_connection_validator(text):
         flags=0,
     )
     if not re_text:
+        set_bottom_toolbar(
+            f'测试 <b><style bg="ansired">{text}</style></b> 读写失败: <i>请参照 127.0.0.1:27017 格式输入</i>')
         return False
     try:
         client = pymongo.MongoClient(
@@ -27,7 +44,9 @@ def mongo_connection_validator(text):
         result = collection.insert_one({'title': 'Python Connect MongoDB',
                                         "content": "Beautiful", "date": datetime.now()})
         for obj in collection.find({'_id': ObjectId(result.inserted_id)}):
-            print_formatted_text(f'测试 {re_text.group()} 读写成功: {obj}')
+            obj.pop('_id')
+            set_bottom_toolbar(
+                f'测试 <b><style bg="ansigreen">{re_text.group()}</style></b> 读写成功: <i>{obj}</i>')
         # 第一个参数找到要更新的文档, 后面是要更新的数据
         # collection.update({name: "xxx"}, {name: "XXX", args: ...})
         # 删除集合中的全部数据, 但是集合依然存在, 索引也在
@@ -35,38 +54,54 @@ def mongo_connection_validator(text):
         # 删除集合 collection
         # collection.drop()
     except Exception as err:
-        print_formatted_text(f'测试 {re_text.group()} 读写失败: {err}')
+        set_bottom_toolbar(
+            f'测试 <b><style bg="ansired">{re_text.group()}</style></b> 读写失败: <i>{err}</i>')
         return False
     return True
 
 
 def import_directory_validator(text):
     if not os.path.isdir(text):
+        set_bottom_toolbar(
+            f'验证目录 <b><style bg="ansired">{text}</style></b> 失败: <i>不存在的目录</i>')
         return False
-    if len(os.listdir(text)) >= 2:
-        print_formatted_text(f'验证目录 {text} 成功: 共有 {len(os.listdir(text))} 个文件')
-    else:
-        print_formatted_text(f'验证目录 {text} 失败: 至少需要2个文件')
+    file_list = os.listdir(text)
+    if not len(file_list) >= 3:
+        set_bottom_toolbar(
+            f'验证目录 <b><style bg="ansired">{text}</style></b> 失败: <i>至少需要 3 个文件</i>')
         return False
+    if not 'classes.txt' in file_list:
+        set_bottom_toolbar(
+            f'验证目录 <b><style bg="ansired">{text}</style></b> 失败: <i>缺少 classes.txt 文件</i>')
+        return False
+    with open(os.path.join(text, 'classes.txt'), 'r') as f:
+        classes_text = f.read()
+    # print(classes_text.split('\n'))
+    set_bottom_toolbar(
+        f'验证目录 <b><style bg="ansigreen">{text}</style></b> 成功: <i>共有 {len(file_list)} 个文件和目录</i>')
     return True
 
 
 def main():
+    set_bottom_toolbar('待导入的图资和标注目录')
     import_file_directory = prompt(
-        '待导入的图资和标注目录 > ',
+        '> ',
         validator=Validator.from_callable(
             import_directory_validator,
-            error_message='请输入有效的目录绝对路径',
+            error_message='无效路径',
             move_cursor_to_end=True,
         ),
+        bottom_toolbar=get_bottom_toolbar,
     )
+    set_bottom_toolbar('MongoDB 连接 HOST:PORT')
     mongo_host_port = prompt(
-        'MongoDB 连接 HOST:PORT > ',
+        '> ',
         validator=Validator.from_callable(
             mongo_connection_validator,
-            error_message='请参照 127.0.0.1:27017 格式输入',
+            error_message='无效地址',
             move_cursor_to_end=True,
         ),
+        bottom_toolbar=get_bottom_toolbar,
     )
 
 

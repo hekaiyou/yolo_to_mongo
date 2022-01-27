@@ -9,6 +9,10 @@ python3 -m venv env
 pip install -r requirements.txt
 ```
 
+### 测试数据
+
+将测试导入的数据放在 *demo/* 目录下.
+
 ### 安装调试
 
 ```bash
