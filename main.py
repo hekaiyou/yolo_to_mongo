@@ -1,14 +1,13 @@
 import re
 import os
+import time
 import pymongo
 from datetime import datetime
-from prompt_toolkit import HTML
-from prompt_toolkit import prompt
+from prompt_toolkit import HTML, prompt, PromptSession, print_formatted_text
 from bson.objectid import ObjectId
 from prompt_toolkit.styles import Style
-from prompt_toolkit import PromptSession
 from prompt_toolkit.validation import Validator
-from prompt_toolkit.shortcuts import yes_no_dialog
+from prompt_toolkit.shortcuts import yes_no_dialog, ProgressBar
 
 bottom_remind = None
 
@@ -84,6 +83,58 @@ def import_directory_validator(text):
     return True
 
 
+def preprocess_label_data(import_file_directory):
+    with open(os.path.join(import_file_directory, 'classes.txt'), 'r') as f:
+        classes_text = f.read()
+    classes_list = classes_text.split('\n')
+    label_dict = {}
+    for i in range(len(classes_list)):
+        if classes_list[i]:
+            label_dict[i] = classes_list[i]
+    return label_dict
+
+
+def preprocess_annotation_data(import_file_directory, label_dict):
+    annotation_data = []
+    file_list = os.listdir(import_file_directory)
+    title = HTML(
+        f'筛选目录下 <style bg="yellow" fg="black">{len(file_list)} 个文件...</style> 中的有效标注数据')
+    label = HTML('<i>文件遍历进度</i>: ')
+    with ProgressBar(title=title) as pb:
+        for i in pb(file_list, label=label):
+            if '.txt' in i:
+                with open(os.path.join(import_file_directory, i), 'r') as f:
+                    annotation_text = f.read()
+                if annotation_text.split('\n'):
+                    annotation_info_list = []
+                    for annotation_str in annotation_text.split('\n'):
+                        annotation_info = annotation_str.split(' ')
+                        if len(annotation_info) == 5:
+                            annotation_info_list.append({
+                                'class': int(annotation_info[0]),
+                                'label': label_dict[int(annotation_info[0])],
+                                'info': annotation_info[1:],
+                            })
+                    if annotation_info_list:
+                        if f'{i.split(".")[0]}.jpg' in file_list:
+                            annotation_data.append({
+                                'annotation': annotation_info_list,
+                                'file': os.path.join(import_file_directory, f'{i.split(".")[0]}.jpg'),
+                            })
+    print_formatted_text(
+        HTML(f'<ansigreen>共筛选出 <b>{len(annotation_data)}</b> 个有效标注数据</ansigreen>'))
+    return annotation_data
+
+
+def process_imported_data(annotation_data):
+    title = HTML(
+        f'处理待导入 <style bg="yellow" fg="black">{len(annotation_data)} 个标注数据...</style> 中的图像文件')
+    label = HTML('<i>数据处理进度</i>: ')
+    with ProgressBar(title=title) as pb:
+        for i in pb(annotation_data, label=label):
+            print(i)
+
+
 def main():
     session = PromptSession()
     while True:
@@ -112,7 +163,10 @@ def main():
             text=f'待导入的图资和标注目录:\n    {import_file_directory}\nMongoDB 连接 HOST:PORT:\n    {mongo_host_port}',
         ).run()
         if whether_to_start:
-            pass
+            label_dict = preprocess_label_data(import_file_directory)
+            annotation_data = preprocess_annotation_data(
+                import_file_directory, label_dict)
+            process_imported_data(annotation_data)
 
 
 if __name__ == '__main__':
