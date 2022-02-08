@@ -2,11 +2,13 @@ import re
 import os
 import pymongo
 from datetime import datetime
+from prompt_toolkit import HTML
 from prompt_toolkit import prompt
 from bson.objectid import ObjectId
 from prompt_toolkit.styles import Style
+from prompt_toolkit import PromptSession
 from prompt_toolkit.validation import Validator
-from prompt_toolkit import HTML
+from prompt_toolkit.shortcuts import yes_no_dialog
 
 bottom_remind = None
 
@@ -83,26 +85,34 @@ def import_directory_validator(text):
 
 
 def main():
-    set_bottom_toolbar('待导入的图资和标注目录')
-    import_file_directory = prompt(
-        '> ',
-        validator=Validator.from_callable(
-            import_directory_validator,
-            error_message='无效路径',
-            move_cursor_to_end=True,
-        ),
-        bottom_toolbar=get_bottom_toolbar,
-    )
-    set_bottom_toolbar('MongoDB 连接 HOST:PORT')
-    mongo_host_port = prompt(
-        '> ',
-        validator=Validator.from_callable(
-            mongo_connection_validator,
-            error_message='无效地址',
-            move_cursor_to_end=True,
-        ),
-        bottom_toolbar=get_bottom_toolbar,
-    )
+    session = PromptSession()
+    while True:
+        set_bottom_toolbar('待导入的图资和标注目录')
+        import_file_directory = session.prompt(
+            '> ',
+            validator=Validator.from_callable(
+                import_directory_validator,
+                error_message='无效路径',
+                move_cursor_to_end=True,
+            ),
+            bottom_toolbar=get_bottom_toolbar,
+        )
+        set_bottom_toolbar('MongoDB 连接 HOST:PORT')
+        mongo_host_port = session.prompt(
+            '> ',
+            validator=Validator.from_callable(
+                mongo_connection_validator,
+                error_message='无效地址',
+                move_cursor_to_end=True,
+            ),
+            bottom_toolbar=get_bottom_toolbar,
+        )
+        whether_to_start = yes_no_dialog(
+            title='Yes/No 是否开始导入',
+            text=f'待导入的图资和标注目录:\n    {import_file_directory}\nMongoDB 连接 HOST:PORT:\n    {mongo_host_port}',
+        ).run()
+        if whether_to_start:
+            pass
 
 
 if __name__ == '__main__':
