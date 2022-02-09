@@ -19,3 +19,11 @@ pip install -r requirements.txt
 pip install -U -e .
 yolo-to-mongo
 ```
+
+### 发布命令
+
+```bash
+pip install twine
+python setup.py sdist
+twine upload dist/yolo_to_mongo-x.x.tar.gz
+```

@@ -5,12 +5,12 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 # 模块依赖
-with open('requirements.txt') as f:
+with open('requirements.txt', encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
 setuptools.setup(
     name='yolo_to_mongo',
-    version=1.0,
+    version=0.5,
     author='Hekaiyou',
     author_email='hekaiyou@qq.com',
     description='YOLO to MongoDB',
