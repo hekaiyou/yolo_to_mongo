@@ -1,14 +1,12 @@
 import re
 import os
 import sys
-import time
 import hashlib
 import pymongo
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from datetime import datetime
-from prompt_toolkit import HTML, prompt, PromptSession, print_formatted_text
+from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from bson.objectid import ObjectId
-from prompt_toolkit.styles import Style
 from prompt_toolkit.validation import Validator
 from prompt_toolkit.shortcuts import yes_no_dialog, ProgressBar
 
@@ -131,6 +129,8 @@ def preprocess_annotation_data(import_file_directory, label_dict):
 
 def process_imported_data(annotation_data):
     imported_data = []
+    md5_list = []
+    repeat_md5_list = []
     title = HTML(
         f'处理待导入的 <style bg="yellow" fg="black">{len(annotation_data)} 个标注数据...</style> ({sys.getdefaultencoding()} 编码)')
     label = HTML('<i>数据处理进度</i>: ')
@@ -141,13 +141,41 @@ def process_imported_data(annotation_data):
                 file_data = f.read()
             file_md5 = hashlib.md5(file_data).hexdigest()
             i['file_md5'] = file_md5  # 图片文件MD5字符串
+            if file_md5 not in md5_list:
+                md5_list.append(file_md5)
+            else:
+                repeat_md5_list.append({'md5': file_md5, 'file': i['file']})
             i['file_byte_size'] = os.path.getsize(i['file'])  # 图片文件字节大小
-            img = Image.open(i['file'])
-            i['file_width'] = img.width  # 图片文件宽度
-            i['file_height'] = img.height  # 图片文件高度
-            i['file_mode'] = img.mode  # 图片文件像素格式
+            try:
+                img = Image.open(i['file'])
+                i['file_width'] = img.width  # 图片文件宽度
+                i['file_height'] = img.height  # 图片文件高度
+                i['file_mode'] = img.mode  # 图片文件像素格式
+            except UnidentifiedImageError:
+                # 含有标注信息的图片无法被打开
+                i['file_width'] = 0
+                i['file_height'] = 0
+                i['file_mode'] = ''
             imported_data.append(i)
+    if repeat_md5_list:
+        print_formatted_text(HTML(
+            f'<ansiyellow>请注意, 出现 <b>{len(repeat_md5_list)}</b> 个重复 MD5 码的文件</ansiyellow>'))
+        for repeat_md5 in repeat_md5_list:
+            print_formatted_text(
+                HTML(f'    <i><u>{repeat_md5["file"]}</u></i>'))
+    else:
+        print_formatted_text(HTML(
+            f'<ansigreen>完成 <b>{len(imported_data)}</b> 个数据的处理, 没有出现重复 MD5 码</ansigreen>'))
     return imported_data
+
+
+def import_data(imported_data):
+    title = HTML(
+        f'导入 <style bg="yellow" fg="black">{len(imported_data)} 个历史标注...</style> 到 MongoDB 数据库')
+    label = HTML('<i>数据导入进度</i>: ')
+    with ProgressBar(title=title) as pb:
+        for i in pb(imported_data, label=label):
+            pass
 
 
 def main():
@@ -185,7 +213,7 @@ def main():
                 annotation_data = preprocess_annotation_data(
                     import_file_directory, label_dict)
                 imported_data = process_imported_data(annotation_data)
-                print(imported_data[0])
+                import_data(imported_data)
         except KeyboardInterrupt:
             print_formatted_text(HTML(f'<b>安全退出</b>'))
             break
