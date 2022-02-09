@@ -2,6 +2,13 @@
 
 将 YOLO 格式的标注数据存入 MongoDB 数据库的小工具.
 
+## 快速使用
+
+```bash
+pip install yolo-to-mongo
+yolo-to-mongo
+```
+
 ## 本地开发
 
 ```bash
