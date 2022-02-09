@@ -1,7 +1,10 @@
 import re
 import os
+import sys
 import time
+import hashlib
 import pymongo
+from PIL import Image
 from datetime import datetime
 from prompt_toolkit import HTML, prompt, PromptSession, print_formatted_text
 from bson.objectid import ObjectId
@@ -127,46 +130,65 @@ def preprocess_annotation_data(import_file_directory, label_dict):
 
 
 def process_imported_data(annotation_data):
+    imported_data = []
     title = HTML(
-        f'处理待导入 <style bg="yellow" fg="black">{len(annotation_data)} 个标注数据...</style> 中的图像文件')
+        f'处理待导入的 <style bg="yellow" fg="black">{len(annotation_data)} 个标注数据...</style> ({sys.getdefaultencoding()} 编码)')
     label = HTML('<i>数据处理进度</i>: ')
     with ProgressBar(title=title) as pb:
         for i in pb(annotation_data, label=label):
-            print(i)
+            # 以二进制形式读取文件数据
+            with open(i['file'], 'rb') as f:
+                file_data = f.read()
+            file_md5 = hashlib.md5(file_data).hexdigest()
+            i['file_md5'] = file_md5  # 图片文件MD5字符串
+            i['file_byte_size'] = os.path.getsize(i['file'])  # 图片文件字节大小
+            img = Image.open(i['file'])
+            i['file_width'] = img.width  # 图片文件宽度
+            i['file_height'] = img.height  # 图片文件高度
+            i['file_mode'] = img.mode  # 图片文件像素格式
+            imported_data.append(i)
+    return imported_data
 
 
 def main():
     session = PromptSession()
+    print_formatted_text(HTML(
+        '欢迎使用 <b><ansired>YOLO</ansired> <ansiyellow>to</ansiyellow> <ansigreen>MongoDB</ansigreen></b>'))
     while True:
-        set_bottom_toolbar('待导入的图资和标注目录')
-        import_file_directory = session.prompt(
-            '> ',
-            validator=Validator.from_callable(
-                import_directory_validator,
-                error_message='无效路径',
-                move_cursor_to_end=True,
-            ),
-            bottom_toolbar=get_bottom_toolbar,
-        )
-        set_bottom_toolbar('MongoDB 连接 HOST:PORT')
-        mongo_host_port = session.prompt(
-            '> ',
-            validator=Validator.from_callable(
-                mongo_connection_validator,
-                error_message='无效地址',
-                move_cursor_to_end=True,
-            ),
-            bottom_toolbar=get_bottom_toolbar,
-        )
-        whether_to_start = yes_no_dialog(
-            title='Yes/No 是否开始导入',
-            text=f'待导入的图资和标注目录:\n    {import_file_directory}\nMongoDB 连接 HOST:PORT:\n    {mongo_host_port}',
-        ).run()
-        if whether_to_start:
-            label_dict = preprocess_label_data(import_file_directory)
-            annotation_data = preprocess_annotation_data(
-                import_file_directory, label_dict)
-            process_imported_data(annotation_data)
+        try:
+            set_bottom_toolbar('待导入的图资和标注目录')
+            import_file_directory = session.prompt(
+                '> ',
+                validator=Validator.from_callable(
+                    import_directory_validator,
+                    error_message='无效路径',
+                    move_cursor_to_end=True,
+                ),
+                bottom_toolbar=get_bottom_toolbar,
+            )
+            set_bottom_toolbar('MongoDB 连接 HOST:PORT')
+            mongo_host_port = session.prompt(
+                '> ',
+                validator=Validator.from_callable(
+                    mongo_connection_validator,
+                    error_message='无效地址',
+                    move_cursor_to_end=True,
+                ),
+                bottom_toolbar=get_bottom_toolbar,
+            )
+            whether_to_start = yes_no_dialog(
+                title='Yes/No 是否开始导入',
+                text=f'待导入的图资和标注目录:\n    {import_file_directory}\nMongoDB 连接 HOST:PORT:\n    {mongo_host_port}',
+            ).run()
+            if whether_to_start:
+                label_dict = preprocess_label_data(import_file_directory)
+                annotation_data = preprocess_annotation_data(
+                    import_file_directory, label_dict)
+                imported_data = process_imported_data(annotation_data)
+                print(imported_data[0])
+        except KeyboardInterrupt:
+            print_formatted_text(HTML(f'<b>安全退出</b>'))
+            break
 
 
 if __name__ == '__main__':
