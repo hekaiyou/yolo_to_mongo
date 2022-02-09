@@ -169,19 +169,37 @@ def process_imported_data(annotation_data):
     return imported_data
 
 
-def import_data(imported_data):
+def import_data(imported_data, mongo_host_port):
+    already_exists = 0
+    client = pymongo.MongoClient(
+        f'mongodb://{mongo_host_port}/',
+        serverSelectionTimeoutMS=6000,
+        socketTimeoutMS=6000,
+    )
+    db = client['yolo_to_mongo']
+    collection = db['annotations']
     title = HTML(
         f'导入 <style bg="yellow" fg="black">{len(imported_data)} 个历史标注...</style> 到 MongoDB 数据库')
     label = HTML('<i>数据导入进度</i>: ')
     with ProgressBar(title=title) as pb:
         for i in pb(imported_data, label=label):
-            pass
+            find_result = collection.find_one({
+                'file_md5': i['file_md5'], 'file_width': i['file_width'],
+                'file_height': i['file_height'], 'file_mode': i['file_mode']
+            })
+            if find_result:
+                already_exists += 1
+            else:
+                collection.insert_one(i)
+    print_formatted_text(HTML(
+        f'<ansigreen>成功导入 <b>{len(imported_data)-already_exists}</b> 个数据, 跳过 {already_exists} 个已存在数据</ansigreen>'))
 
 
 def main():
     session = PromptSession()
     print_formatted_text(HTML(
         '欢迎使用 <b><ansired>YOLO</ansired> <ansiyellow>to</ansiyellow> <ansigreen>MongoDB</ansigreen></b>'))
+    print_formatted_text(HTML(f'开始导入任务 <i>(按 Ctrl+C 安全退出)</i>'))
     while True:
         try:
             set_bottom_toolbar('待导入的图资和标注目录')
@@ -213,7 +231,9 @@ def main():
                 annotation_data = preprocess_annotation_data(
                     import_file_directory, label_dict)
                 imported_data = process_imported_data(annotation_data)
-                import_data(imported_data)
+                import_data(imported_data, mongo_host_port)
+            print_formatted_text(
+                HTML(f'开始 <b><ansiyellow>下一轮</ansiyellow></b> 导入任务 <i>(按 Ctrl+C 安全退出)</i>'))
         except KeyboardInterrupt:
             print_formatted_text(HTML(f'<b>安全退出</b>'))
             break
