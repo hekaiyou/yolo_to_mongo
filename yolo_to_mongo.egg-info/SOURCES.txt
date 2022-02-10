@@ -1,8 +1,8 @@
 README.md
 __init__.py
+main.py
 requirements.txt
 setup.py
-yolo_to_mongo/main.py
 yolo_to_mongo.egg-info/PKG-INFO
 yolo_to_mongo.egg-info/SOURCES.txt
 yolo_to_mongo.egg-info/dependency_links.txt
