@@ -2,6 +2,8 @@
 
 将 YOLO 格式的标注数据存入 MongoDB 数据库的小工具.
 
+![design](design.png)
+
 ## 快速使用
 
 ```bash
