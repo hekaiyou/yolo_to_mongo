@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: yolo-to-mongo
-Version: 0.9
+Version: 0.91
 Summary: YOLO to MongoDB
 Home-page: https://github.com/hekaiyou/yolo_to_mongo
 Author: Hekaiyou
@@ -40,7 +40,7 @@ Description: # YOLO to MongoDB
         ```bash
         pip install twine
         python setup.py sdist
-        twine upload dist/yolo_to_mongo-x.x.tar.gz
+        twine upload dist/yolo-to-mongo-x.x.tar.gz
         ```
         
 Platform: UNKNOWN
