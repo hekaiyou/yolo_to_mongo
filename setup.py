@@ -9,8 +9,8 @@ with open('requirements.txt', 'r', encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
 setuptools.setup(
-    name='yolo_to_mongo',
-    version=0.6,
+    name='yolo-to-mongo',
+    version=0.9,
     author='Hekaiyou',
     author_email='hekaiyou@qq.com',
     description='YOLO to MongoDB',

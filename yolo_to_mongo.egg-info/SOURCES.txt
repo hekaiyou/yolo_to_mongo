@@ -1,0 +1,11 @@
+README.md
+__init__.py
+main.py
+requirements.txt
+setup.py
+yolo_to_mongo.egg-info/PKG-INFO
+yolo_to_mongo.egg-info/SOURCES.txt
+yolo_to_mongo.egg-info/dependency_links.txt
+yolo_to_mongo.egg-info/entry_points.txt
+yolo_to_mongo.egg-info/requires.txt
+yolo_to_mongo.egg-info/top_level.txt

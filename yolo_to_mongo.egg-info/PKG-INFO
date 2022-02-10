@@ -1,0 +1,51 @@
+Metadata-Version: 2.1
+Name: yolo-to-mongo
+Version: 0.9
+Summary: YOLO to MongoDB
+Home-page: https://github.com/hekaiyou/yolo_to_mongo
+Author: Hekaiyou
+Author-email: hekaiyou@qq.com
+License: UNKNOWN
+Description: # YOLO to MongoDB
+        
+        将 YOLO 格式的标注数据存入 MongoDB 数据库的小工具.
+        
+        ## 快速使用
+        
+        ```bash
+        pip install yolo-to-mongo
+        yolo-to-mongo
+        ```
+        
+        ## 本地开发
+        
+        ```bash
+        python3 -m venv env
+        pip install -r requirements.txt
+        ```
+        
+        ### 测试数据
+        
+        将测试导入的数据放在 *demo/* 目录下.
+        
+        ### 安装调试
+        
+        ```bash
+        pip install -U -e .
+        yolo-to-mongo
+        ```
+        
+        ### 发布命令
+        
+        ```bash
+        pip install twine
+        python setup.py sdist
+        twine upload dist/yolo_to_mongo-x.x.tar.gz
+        ```
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown

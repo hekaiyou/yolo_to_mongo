@@ -32,5 +32,5 @@ yolo-to-mongo
 ```bash
 pip install twine
 python setup.py sdist
-twine upload dist/yolo_to_mongo-x.x.tar.gz
+twine upload dist/yolo-to-mongo-x.x.tar.gz
 ```

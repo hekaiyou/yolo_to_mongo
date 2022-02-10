@@ -2,4 +2,3 @@ env
 .vscode
 demo
 dist
-yolo_to_mongo.egg-info
