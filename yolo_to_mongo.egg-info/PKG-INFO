@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: yolo-to-mongo
-Version: 0.93
+Version: 0.95
 Summary: YOLO to MongoDB
 Home-page: https://github.com/hekaiyou/yolo_to_mongo
 Author: Hekaiyou
@@ -10,7 +10,7 @@ Description: # YOLO to MongoDB
         
         将 YOLO 格式的标注数据存入 MongoDB 数据库的小工具.
         
-        ![design](design.png)
+        ![design](https://raw.githubusercontent.com/hekaiyou/yolo_to_mongo/main/design.png)
         
         ## 快速使用
         

@@ -2,7 +2,7 @@
 
 将 YOLO 格式的标注数据存入 MongoDB 数据库的小工具.
 
-![design](https://github.com/hekaiyou/yolo_to_mongo/blob/main/design.png)
+![design](https://raw.githubusercontent.com/hekaiyou/yolo_to_mongo/main/design.png)
 
 ## 快速使用
 
