@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: yolo-to-mongo
-Version: 0.95
+Version: 1.0
 Summary: YOLO to MongoDB
 Home-page: https://github.com/hekaiyou/yolo_to_mongo
 Author: Hekaiyou
@@ -17,6 +17,29 @@ Description: # YOLO to MongoDB
         ```bash
         pip install yolo-to-mongo
         yolo-to-mongo
+        ```
+        
+        使用示例:
+        
+        ```bash
+        $ yolo-to-mongo
+        欢迎使用 YOLO to MongoDB
+        开始导入任务 (按 Ctrl+C 安全退出)
+        > C:\Users\xxx\Desktop\测试数据\Post\20220210
+        > 127.0.0.1:27017
+        筛选目录下 2614 个文件... 中的有效标注数据
+        文件遍历进度:  100.0% [====================>] 2614/2614 eta [00:00]
+        共筛选出 1306 个有效标注数据
+        处理待导入的 1306 个标注数据... (utf-8 编码)
+        数据处理进度:  100.0% [====================>] 1306/1306 eta [00:00]
+        完成 1306 个数据的处理, 没有出现重复 MD5 码
+        导入 1306 个历史标注... 到 MongoDB 数据库
+        数据导入进度:  100.0% [====================>] 1306/1306 eta [00:00]
+        成功导入 0 个数据, 跳过 1306 个已存在数据
+        开始 下一轮 导入任务 (按 Ctrl+C 安全退出)
+        >                                                                             
+        安全退出
+        $ 
         ```
         
         ## 本地开发
