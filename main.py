@@ -169,8 +169,9 @@ def process_imported_data(annotation_data):
     return imported_data
 
 
-def import_data(imported_data, mongo_host_port):
+def import_data(imported_data, mongo_host_port, whether_to_cover):
     already_exists = 0
+    already_covered = 0
     client = pymongo.MongoClient(
         f'mongodb://{mongo_host_port}/',
         serverSelectionTimeoutMS=6000,
@@ -188,11 +189,22 @@ def import_data(imported_data, mongo_host_port):
                 'file_height': i['file_height'], 'file_mode': i['file_mode']
             })
             if find_result:
-                already_exists += 1
+                if whether_to_cover:
+                    collection.update_one(
+                        {'_id': ObjectId(find_result['_id'])},
+                        {'$set': {'annotation': i['annotation']}}
+                    )
+                    already_covered += 1
+                else:
+                    already_exists += 1
             else:
                 collection.insert_one(i)
-    print_formatted_text(HTML(
-        f'<ansigreen>成功导入 <b>{len(imported_data)-already_exists}</b> 个数据, 跳过 {already_exists} 个已存在数据</ansigreen>'))
+    if whether_to_cover:
+        print_formatted_text(HTML(
+            f'<ansigreen>成功导入 <b>{len(imported_data)-already_exists}</b> 个数据, 覆盖 <b>{already_covered}</b> 个已存在数据</ansigreen>'))
+    else:
+        print_formatted_text(HTML(
+            f'<ansigreen>成功导入 <b>{len(imported_data)-already_exists}</b> 个数据, 跳过 <b>{already_exists}</b> 个已存在数据</ansigreen>'))
 
 
 def main():
@@ -231,7 +243,11 @@ def main():
                 annotation_data = preprocess_annotation_data(
                     import_file_directory, label_dict)
                 imported_data = process_imported_data(annotation_data)
-                import_data(imported_data, mongo_host_port)
+                whether_to_cover = yes_no_dialog(
+                    title='Yes/No 是否覆盖已存在数据',
+                    text=f'当导入数据在数据库中已经存在时, 是否覆盖写入 ?',
+                ).run()
+                import_data(imported_data, mongo_host_port, whether_to_cover)
             print_formatted_text(
                 HTML(f'开始 <b><ansiyellow>下一轮</ansiyellow></b> 导入任务 <i>(按 Ctrl+C 安全退出)</i>'))
         except KeyboardInterrupt:
