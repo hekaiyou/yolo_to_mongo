@@ -1,6 +1,7 @@
 import re
 import os
 import sys
+import logging
 import hashlib
 import pymongo
 from PIL import Image, UnidentifiedImageError
@@ -9,6 +10,13 @@ from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from bson.objectid import ObjectId
 from prompt_toolkit.validation import Validator
 from prompt_toolkit.shortcuts import yes_no_dialog, ProgressBar
+
+logging.basicConfig(
+    level=logging.INFO,  # 控制台打印的日志级别
+    filename='yolo_to_mongo.log',
+    filemode='a',  # w:写模式,每次都会覆盖之前的日志;a:追加模式.默认如果不写的话,就是追加模式
+    format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s'
+)
 
 bottom_remind = None
 
@@ -92,6 +100,7 @@ def preprocess_label_data(import_file_directory):
     for i in range(len(classes_list)):
         if classes_list[i]:
             label_dict[i] = classes_list[i]
+    logging.info(f'导入标签字典: {label_dict}')
     return label_dict
 
 
@@ -124,6 +133,7 @@ def preprocess_annotation_data(import_file_directory, label_dict):
                             })
     print_formatted_text(
         HTML(f'<ansigreen>共筛选出 <b>{len(annotation_data)}</b> 个有效标注数据</ansigreen>'))
+    logging.info(f'初筛标注数量: {len(annotation_data)}')
     return annotation_data
 
 
@@ -166,6 +176,8 @@ def process_imported_data(annotation_data):
     else:
         print_formatted_text(HTML(
             f'<ansigreen>完成 <b>{len(imported_data)}</b> 个数据的处理, 没有出现重复 MD5 码</ansigreen>'))
+    logging.info(f'重复MD5编号: {len(repeat_md5_list)}')
+    logging.info(f'有效标注数量: {len(imported_data)}')
     return imported_data
 
 
@@ -205,6 +217,8 @@ def import_data(imported_data, mongo_host_port, whether_to_cover):
     else:
         print_formatted_text(HTML(
             f'<ansigreen>成功导入 <b>{len(imported_data)-already_exists}</b> 个数据, 跳过 <b>{already_exists}</b> 个已存在数据</ansigreen>'))
+    logging.info(
+        f'导入总数: {len(imported_data)-already_exists}, 覆盖数: {already_covered}, 跳过数: {already_exists}')
 
 
 def main():
@@ -239,6 +253,7 @@ def main():
                 text=f'待导入的图资和标注目录:\n    {import_file_directory}\nMongoDB 连接 HOST:PORT:\n    {mongo_host_port}',
             ).run()
             if whether_to_start:
+                logging.info(f'开始导入目录: {import_file_directory}')
                 label_dict = preprocess_label_data(import_file_directory)
                 annotation_data = preprocess_annotation_data(
                     import_file_directory, label_dict)
