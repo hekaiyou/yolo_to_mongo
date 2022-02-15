@@ -214,10 +214,19 @@ def import_data(imported_data, mongo_host_port, whether_to_cover):
                         {'$set': {'annotation': find_result['annotation']}}
                     )
                 else:
+                    for annotate_i in range(len(find_result['annotation'])):
+                        # 遍历已存在的标注框
+                        annotate_x = find_result['annotation'][annotate_i]
+                        for annotate_y in i['annotation']:
+                            # 遍历当前导入的标注框
+                            if annotate_x['info'] == annotate_y['info']:
+                                # 已存在和当前的标注框是否相同, 相同则覆盖数据
+                                find_result['annotation'][annotate_i] = annotate_y
+                                continue
                     if whether_to_cover:
                         collection.update_one(
                             {'_id': ObjectId(find_result['_id'])},
-                            {'$set': {'annotation': i['annotation']}}
+                            {'$set': {'annotation': find_result['annotation']}}
                         )
                         already_covered += 1
                     else:

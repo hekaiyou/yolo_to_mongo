@@ -10,7 +10,7 @@ with open('requirements.txt', 'r', encoding='utf-8') as f:
 
 setuptools.setup(
     name='yolo-to-mongo',
-    version=1.2,
+    version=1.3,
     author='Hekaiyou',
     author_email='hekaiyou@qq.com',
     description='YOLO to MongoDB',
