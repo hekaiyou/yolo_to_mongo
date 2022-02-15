@@ -201,14 +201,27 @@ def import_data(imported_data, mongo_host_port, whether_to_cover):
                 'file_height': i['file_height'], 'file_mode': i['file_mode']
             })
             if find_result:
-                if whether_to_cover:
+                annotate_exists = []  # 已存在的标框位置
+                for annotate in find_result['annotation']:
+                    annotate_exists.append(annotate['info'])
+                for annotate in i['annotation']:
+                    if annotate['info'] not in annotate_exists:
+                        find_result['annotation'].append(annotate)
+                if len(annotate_exists) != len(find_result['annotation']):
+                    # 兼容同一张图片重复标注的情况
                     collection.update_one(
                         {'_id': ObjectId(find_result['_id'])},
-                        {'$set': {'annotation': i['annotation']}}
+                        {'$set': {'annotation': find_result['annotation']}}
                     )
-                    already_covered += 1
                 else:
-                    already_exists += 1
+                    if whether_to_cover:
+                        collection.update_one(
+                            {'_id': ObjectId(find_result['_id'])},
+                            {'$set': {'annotation': i['annotation']}}
+                        )
+                        already_covered += 1
+                    else:
+                        already_exists += 1
             else:
                 collection.insert_one(i)
     if whether_to_cover:
