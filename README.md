@@ -36,9 +36,19 @@ $
 
 ## 本地开发
 
+开发过程中调试.
+
 ```bash
 python3 -m venv env
 pip install -r requirements.txt
+```
+
+发布之前的打包调试.
+
+```bash
+python setup.py check
+python setup.py sdist
+python setup.py install 
 ```
 
 ### 测试数据
