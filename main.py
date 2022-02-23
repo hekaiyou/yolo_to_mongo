@@ -126,10 +126,19 @@ def preprocess_annotation_data(import_file_directory, label_dict):
                                 'info': annotation_info[1:],
                             })
                     if annotation_info_list:
+                        img_file_name = None
                         if f'{i.split(".")[0]}.jpg' in file_list:
+                            img_file_name = f'{i.split(".")[0]}.jpg'
+                        elif f'{i.split(".")[0]}.jpeg' in file_list:
+                            img_file_name = f'{i.split(".")[0]}.jpeg'
+                        elif f'{i.split(".")[0]}.png' in file_list:
+                            img_file_name = f'{i.split(".")[0]}.png'
+                        elif f'{i.split(".")[0]}.bmp' in file_list:
+                            img_file_name = f'{i.split(".")[0]}.bmp'
+                        if img_file_name:
                             annotation_data.append({
                                 'annotation': annotation_info_list,
-                                'file': os.path.join(import_file_directory, f'{i.split(".")[0]}.jpg'),
+                                'file': os.path.join(import_file_directory, img_file_name),
                             })
     print_formatted_text(
         HTML(f'<ansigreen>共筛选出 <b>{len(annotation_data)}</b> 个有效标注数据</ansigreen>'))
